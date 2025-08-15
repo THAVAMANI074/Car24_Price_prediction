@@ -4,15 +4,27 @@ import numpy as np
 import joblib
 import io
 import os
+import requests
 
 # ====== Model path ======
-MODEL_PATH = r"C:\Users\Thavamani\Desktop\ExcelR-Project1\car_price_predictor\best_price_classifier_xgb_10bins.joblib"
+MODEL_PATH = r"C:\Users\Thavamani\Desktop\ExcelR-Project1\best_price_classifier_xgb_10bins.joblib"
+MODEL_URL = ""  # Optional: URL to host model online for auto-download (if needed)
 
 # ====== Load Model ======
 @st.cache_resource
 def load_model(path):
     if os.path.exists(path):
         return joblib.load(path)
+    elif MODEL_URL:
+        # Try downloading from URL if provided
+        try:
+            r = requests.get(MODEL_URL)
+            with open(path, "wb") as f:
+                f.write(r.content)
+            return joblib.load(path)
+        except Exception:
+            st.error(f"Model not found locally and failed to download from: {MODEL_URL}")
+            return None
     else:
         st.error(f"Model not found at: {path}")
         return None
@@ -72,7 +84,8 @@ input_data['km_age_interaction'] = input_data['kilometerdriven'] * input_data['a
 input_data['price_per_km'] = 0  # Placeholder
 
 # Ensure columns match model
-input_data = input_data[model.feature_names_in_]
+if hasattr(model, "feature_names_in_"):
+    input_data = input_data[model.feature_names_in_]
 
 # ====== Price Bins ======
 bins = [
