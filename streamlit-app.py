@@ -5,39 +5,32 @@ import joblib
 import io
 import os
 
-# ====== MODEL CONFIG ======
-MODEL_PATH = r"C:\Users\Thavamani\Desktop\ExcelR-Project1\car_price_predictor\best_price_classifier_xgb_10bins.joblib"
+# ====== Change working directory ======
+os.chdir(r"C:\Users\Thavamani\Desktop\ExcelR-Project1")
 
-# ====== Debug info ======
-st.write("🛠 Debug Info:")
-st.write("Current working directory:", os.getcwd())
-st.write("Absolute path to model:", MODEL_PATH)
-st.write("Does model exist?", os.path.exists(MODEL_PATH))
+# ====== Model path ======
+MODEL_PATH = os.path.join("car_price_predictor", "best_price_classifier_xgb_10bins.joblib")
 
-# ====== Load Model Function ======
+# ====== Load Model ======
 @st.cache_resource
 def load_model(path):
     if os.path.exists(path):
-        st.success("Model found and loaded successfully!")
         return joblib.load(path)
     return None
 
-# ====== Load the model ======
 model = load_model(MODEL_PATH)
 
-# ====== If model not found, allow upload ======
+# ====== Fallback: Upload if missing ======
 if model is None:
-    st.warning(f"Model file not found at:\n{MODEL_PATH}")
+    st.warning(f"Model not found at:\n{MODEL_PATH}")
     uploaded_file = st.file_uploader("Upload your trained model (.joblib)", type=["joblib"])
     if uploaded_file is not None:
-        # Create folder if it doesn't exist
         os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
         with open(MODEL_PATH, "wb") as f:
             f.write(uploaded_file.getbuffer())
-        st.success(f"Model uploaded successfully! Saved at:\n{MODEL_PATH}")
-        # Load uploaded model immediately
         model = joblib.load(MODEL_PATH)
-        st.experimental_rerun()  # Reload the app with the model
+        st.success("Model uploaded successfully! Reloading app...")
+        st.experimental_rerun()
     st.stop()
 
 # ====== Streamlit UI ======
@@ -45,7 +38,7 @@ st.set_page_config(page_title="Car Price Prediction", page_icon="🚗", layout="
 st.title("🚗 Car Price Prediction App")
 st.write("Enter the details below to predict the price category of a car.")
 
-# ====== Mapping Dictionaries ======
+# ====== Mappings ======
 fuel_map = {'Petrol': 1, 'Petrol + CNG': 2, 'Diesel': 3}
 transmission_map = {'Manual': 1, 'Automatic': 2, 'Unknown': 0}
 
@@ -57,7 +50,7 @@ transmission = st.selectbox("Transmission Type", list(transmission_map.keys()))
 isc24assured = st.selectbox("C24 Assured", ["No", "Yes"])
 age = st.number_input("Car Age (Years)", min_value=0, max_value=30, step=1)
 
-# ====== Convert Inputs to Numeric ======
+# ====== Convert Inputs ======
 fueltype_num = fuel_map[fueltype]
 transmission_num = transmission_map[transmission]
 isc24assured_num = 1 if isc24assured == "Yes" else 0
@@ -80,7 +73,7 @@ input_data['age_squared'] = input_data['age'] ** 2
 input_data['km_age_interaction'] = input_data['kilometerdriven'] * input_data['age']
 input_data['price_per_km'] = 0  # Placeholder
 
-# Ensure column order matches model
+# Ensure columns match model
 input_data = input_data[model.feature_names_in_]
 
 # ====== Price Bins ======
