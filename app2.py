@@ -6,9 +6,8 @@ from sklearn.preprocessing import LabelEncoder
 from datetime import datetime
 
 # Load model
-model = joblib.load("D:\Data Science\Project\Car_Price_Prediction.pkl")
+model = joblib.load("C:\Users\Thavamani\Downloads\Car 24 Prediction\Project\Car_Price_Prediction.pkl")
 
-# Paths
 encoders_dir = "encoders"
 
 # List of categorical columns
