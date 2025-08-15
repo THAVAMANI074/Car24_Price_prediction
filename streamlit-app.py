@@ -5,31 +5,29 @@ import joblib
 import io
 import os
 
-# ====== Change working directory ======
-os.chdir(r"C:\Users\Thavamani\Desktop\ExcelR-Project1")
-
 # ====== Model path ======
-MODEL_PATH = os.path.join("car_price_predictor", "best_price_classifier_xgb_10bins.joblib")
+MODEL_PATH = r"C:\Users\Thavamani\Desktop\ExcelR-Project1\car_price_predictor\best_price_classifier_xgb_10bins.joblib"
 
 # ====== Load Model ======
 @st.cache_resource
 def load_model(path):
     if os.path.exists(path):
         return joblib.load(path)
-    return None
+    else:
+        st.error(f"Model not found at: {path}")
+        return None
 
 model = load_model(MODEL_PATH)
 
 # ====== Fallback: Upload if missing ======
 if model is None:
-    st.warning(f"Model not found at:\n{MODEL_PATH}")
     uploaded_file = st.file_uploader("Upload your trained model (.joblib)", type=["joblib"])
     if uploaded_file is not None:
         os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
         with open(MODEL_PATH, "wb") as f:
             f.write(uploaded_file.getbuffer())
+        st.success(f"Model uploaded successfully! Saved at:\n{MODEL_PATH}")
         model = joblib.load(MODEL_PATH)
-        st.success("Model uploaded successfully! Reloading app...")
         st.experimental_rerun()
     st.stop()
 
