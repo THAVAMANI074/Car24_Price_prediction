@@ -6,13 +6,19 @@ import io
 import os
 
 # ====== MODEL CONFIG ======
-# Absolute path to your model
 MODEL_PATH = r"C:\Users\Thavamani\Desktop\ExcelR-Project1\car_price_predictor\best_price_classifier_xgb_10bins.joblib"
+
+# ====== Debug info ======
+st.write("🛠 Debug Info:")
+st.write("Current working directory:", os.getcwd())
+st.write("Absolute path to model:", MODEL_PATH)
+st.write("Does model exist?", os.path.exists(MODEL_PATH))
 
 # ====== Load Model Function ======
 @st.cache_resource
 def load_model(path):
     if os.path.exists(path):
+        st.success("Model found and loaded successfully!")
         return joblib.load(path)
     return None
 
@@ -28,8 +34,11 @@ if model is None:
         os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
         with open(MODEL_PATH, "wb") as f:
             f.write(uploaded_file.getbuffer())
-        st.success(f"Model uploaded successfully! Saved at:\n{MODEL_PATH}\nPlease rerun the app.")
-    st.stop()  # Stop further execution until model is available
+        st.success(f"Model uploaded successfully! Saved at:\n{MODEL_PATH}")
+        # Load uploaded model immediately
+        model = joblib.load(MODEL_PATH)
+        st.experimental_rerun()  # Reload the app with the model
+    st.stop()
 
 # ====== Streamlit UI ======
 st.set_page_config(page_title="Car Price Prediction", page_icon="🚗", layout="centered")
